@@ -184,6 +184,7 @@ func (c QueueServiceClient) ListQueues(param ListQueuesParameters) (ListQueuesRe
 	uri := c.client.getEndpoint(queueServiceName, pathForQueueList(param), url.Values{})
 	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
 	if err != nil {
+		fmt.Println(err)
 		return r, err
 	}
 	defer resp.body.Close()
