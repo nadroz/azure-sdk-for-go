@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"io/ioutil"
 )
 
 // QueueServiceClient contains operations for Microsoft Azure Queue Storage
@@ -17,7 +18,7 @@ type QueueServiceClient struct {
 func pathForQueue(queue string) string         				{ return fmt.Sprintf("/%s", queue) }
 func pathForQueueMessages(queue string) string 				{ return fmt.Sprintf("/%s/messages", queue) }
 func pathForMessage(queue, name string) string 				{ return fmt.Sprintf("/%s/messages/%s", queue, name) }
-func pathForQueueList(param ListQueuesParameters) string	{ 
+func pathForQueueList(param ListQueuesParameters) string	{ return fmt.Sprintf("/")
 	var path string
 	switch param.MatchPrefix { 
 		case false: 
@@ -43,6 +44,15 @@ type PutMessageParameters struct {
 type ListQueuesParameters struct {
 	MatchPrefix bool
 	Prefix string
+}
+
+func (p ListQueuesParameters) getParameters() url.Values {
+	out := url.Values{}
+	out.Set("comp", "list")
+	if p.MatchPrefix{
+		out.Set("prefix", p.Prefix)
+	}
+	return out
 }
 
 func (p PutMessageParameters) getParameters() url.Values {
@@ -97,17 +107,11 @@ type GetMessagesResponse struct {
 	QueueMessagesList []GetMessageResponse `xml:"QueueMessage"`
 }
 
-type Queue struct {
-	Name 		string `xml:"Name"`
-}
-
 //FetchQueuesResponse represents a list of Queues returned from the Get
 //QueueLists operation response.
 type ListQueuesResponse struct {
 	Prefix		string `xml:"Prefix"`
-	Marker		string `xml:"Marker"`
-	MaxResults	string `xml:"MaxResults`
-	Queues     	[]Queue `xml:"Queues"`
+	Queues     	[]string `xml:"Queues>Queue>Name"`
 }
 
 // GetMessageResponse represents a QueueMessage object returned from Get
@@ -179,14 +183,21 @@ func (c QueueServiceClient) QueueExists(name string) (bool, error) {
 }
 
 // Get a list of Queues that match some/no criteria
-func (c QueueServiceClient) ListQueues(param ListQueuesParameters) (ListQueuesResponse, error) {
+func (c QueueServiceClient) ListQueues(params ListQueuesParameters) (ListQueuesResponse, error) {
 	var r ListQueuesResponse
-	uri := c.client.getEndpoint(queueServiceName, pathForQueueList(param), url.Values{})
+	uri := c.client.getEndpoint(queueServiceName, pathForQueueList(params), params.getParameters())
+
+	errorUri := []byte(uri)
+	ioutil.WriteFile("uri.txt", errorUri, 0644)
+
 	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
 	if err != nil {
+		out := []byte(fmt.Sprint(err))
+		ioutil.WriteFile("error.txt", out, 0644)
 		return r, err
 	}
 	defer resp.body.Close()
+	
 	err = xmlUnmarshal(resp.body, &r)
 	return r, err
 }
