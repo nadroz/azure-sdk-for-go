@@ -14,7 +14,7 @@ the packages in your project and update them when a stable tag is out.
 
 # Installation
 
-    go get -d github.com/Azure/azure-sdk-for-go/management
+    go get -d github.com/nadroz/azure-sdk-for-go/management
 
 # Usage
 
