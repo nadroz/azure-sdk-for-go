@@ -192,8 +192,6 @@ func (c QueueServiceClient) ListQueues(params ListQueuesParameters) (ListQueuesR
 
 	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
 	if err != nil {
-		out := []byte(fmt.Sprint(err))
-		ioutil.WriteFile("error.txt", out, 0644)
 		return r, err
 	}
 	defer resp.body.Close()
@@ -201,6 +199,20 @@ func (c QueueServiceClient) ListQueues(params ListQueuesParameters) (ListQueuesR
 	err = xmlUnmarshal(resp.body, &r)
 	return r, err
 }
+
+//Get a queue's message count
+func (c QueueServiceClient) GetQueueDepth(name string) (int, error) {
+	uri := c.client.getEndpoint(queueServiceName, pathForQueue(name), url.Values{"comp": {"metadata"}})
+	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
+
+	if resp != nil && resp.statusCode == http.StatusOK {
+			count := resp.headers.Get("x-ms-approximate-messages-count")
+			depth, _ := strconv.ParseInt(count, 10, 0)
+			return int(depth), err
+		}
+	return int(0), err	
+}
+
 
 // PutMessage operation adds a new message to the back of the message queue.
 //
