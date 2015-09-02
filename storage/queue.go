@@ -192,6 +192,7 @@ func (c QueueServiceClient) ListQueues(params ListQueuesParameters) (ListQueuesR
 
 	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
 	if err != nil {
+		fmt.Println(err)
 		return r, err
 	}
 	defer resp.body.Close()
