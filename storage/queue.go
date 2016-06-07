@@ -187,9 +187,6 @@ func (c QueueServiceClient) ListQueues(params ListQueuesParameters) (ListQueuesR
 	var r ListQueuesResponse
 	uri := c.client.getEndpoint(queueServiceName, pathForQueueList(params), params.getParameters())
 
-	errorUri := []byte(uri)
-	ioutil.WriteFile("uri.txt", errorUri, 0644)
-
 	resp, err := c.client.exec("GET", uri, c.client.getStandardHeaders(), nil)
 	if err != nil {
 		return r, err
