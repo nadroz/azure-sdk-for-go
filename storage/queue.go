@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"io/ioutil"
 )
 
 // QueueServiceClient contains operations for Microsoft Azure Queue Storage
